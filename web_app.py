@@ -193,9 +193,18 @@ def checkout():
     try:
         with conn.cursor() as cur:
             # Obtener el email del usuario
-            cur.execute("SELECT email FROM users WHERE id = %s", (session["user_id"],))
+            user_id = session["user_id"]
+            print(f"[DEBUG] Buscando email para user_id: {user_id}")
+            cur.execute("SELECT email FROM users WHERE id = %s", (user_id,))
             user_data = cur.fetchone()
-            user_email = user_data.get("email") if user_data else ""
+            print(f"[DEBUG] Datos del usuario: {user_data}")
+            
+            if not user_data or not user_data.get("email"):
+                print(f"[ERROR] No se encontró email para user_id: {user_id}")
+                return jsonify({"error": "usuario_sin_email"}), 400
+            
+            user_email = user_data.get("email")
+            print(f"[DEBUG] Email a guardar: {user_email}")
             
             items = []
             subtotal = 0.0
