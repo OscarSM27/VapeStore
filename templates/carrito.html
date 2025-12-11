@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito - Urban Vapes</title>
+    <title>Carrito - VapeStore</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
@@ -222,8 +222,8 @@
 </head>
 <body>
     <header>
-        <a href="{{ url_for('diseño') }}" class="logo-link" aria-label="Inicio">
-            <div class="logo">Vapes Store</div>
+        <a href="{{ url_for('index') }}" class="logo-link" aria-label="Inicio">
+            <div class="logo">VapeStore</div>
         </a>
         <nav>
             {% if session.get('user_id') %}
@@ -277,9 +277,79 @@
     </main>
 
     <footer>
-        <p>© 2025 Urban Vapes - Todos los derechos reservados</p>
+        <p>© 2025 VapeStore - Todos los derechos reservados</p>
     </footer>
 
+    <!-- Modal de información de envío -->
+    <div id="modalEnvio" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#1e1e1e; border: 2px solid #800000; padding:40px; border-radius:15px; max-width:500px; width:90%; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+            <h2 style="color:#ffcccc; margin-bottom:25px; text-align:center;">📦 Información de Envío</h2>
+            
+            <form id="formEnvio">
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; color:#f5f5f5; margin-bottom:8px; font-weight:600;">Dirección de envío *</label>
+                    <input type="text" id="direccion" required 
+                           style="width:100%; padding:12px; border:1px solid #800000; border-radius:8px; background:#2d2d2d; color:#f5f5f5; font-size:1rem;"
+                           placeholder="Calle, número, colonia...">
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; color:#f5f5f5; margin-bottom:8px; font-weight:600;">Referencias del domicilio *</label>
+                    <textarea id="referencias" required rows="3"
+                              style="width:100%; padding:12px; border:1px solid #800000; border-radius:8px; background:#2d2d2d; color:#f5f5f5; font-size:1rem; resize:vertical;"
+                              placeholder="Entre qué calles, color de casa, etc..."></textarea>
+                </div>
+
+                <div style="margin-bottom:30px;">
+                    <label style="display:block; color:#f5f5f5; margin-bottom:8px; font-weight:600;">Teléfono de contacto *</label>
+                    <input type="tel" id="telefono" required 
+                           style="width:100%; padding:12px; border:1px solid #800000; border-radius:8px; background:#2d2d2d; color:#f5f5f5; font-size:1rem;"
+                           placeholder="10 dígitos">
+                </div>
+
+                <div style="display:flex; gap:15px;">
+                    <button type="submit" style="flex:1; background:#cc0000; color:white; padding:15px; border:none; border-radius:8px; font-weight:700; font-size:1.1rem; cursor:pointer; transition:background 0.3s;">
+                        Proceder al pago
+                    </button>
+                    <button type="button" id="btnCancelarModal" style="flex:1; background:#666; color:white; padding:15px; border:none; border-radius:8px; font-weight:700; font-size:1.1rem; cursor:pointer; transition:background 0.3s;">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de método de pago -->
+    <div id="modalPago" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:#1e1e1e; border: 2px solid #800000; padding:40px; border-radius:15px; max-width:500px; width:90%; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+            <h2 style="color:#ffcccc; margin-bottom:25px; text-align:center;">💳 Método de Pago</h2>
+            
+            <p style="color:#d0d0d0; text-align:center; margin-bottom:30px;">Selecciona tu método de pago preferido:</p>
+            
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <button id="btnEfectivo" type="button" style="width:100%; background:#cc0000; color:white; padding:20px; border:none; border-radius:8px; font-weight:700; font-size:1.1rem; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; gap:10px;">
+                    <span style="font-size:1.5rem;">💵</span> Efectivo
+                </button>
+                
+                <button id="btnTarjeta" type="button" style="width:100%; background:#cc0000; color:white; padding:20px; border:none; border-radius:8px; font-weight:700; font-size:1.1rem; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; gap:10px;">
+                    <span style="font-size:1.5rem;">💳</span> Tarjeta de Crédito/Débito
+                </button>
+                
+                <button type="button" id="btnCancelarPago" style="width:100%; background:#666; color:white; padding:15px; border:none; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer; transition:background 0.3s; margin-top:10px;">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de éxito -->
+    <div id="modalExito" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10001; align-items:center; justify-content:center;">
+        <div style="background:#1e1e1e; border: 3px solid #00cc00; padding:50px; border-radius:20px; max-width:450px; width:90%; box-shadow: 0 15px 50px rgba(0,204,0,0.4); text-align:center; animation: fadeIn 0.3s ease;">
+            <div style="font-size:4rem; margin-bottom:20px;">✅</div>
+            <h2 style="color:#00ff00; margin-bottom:20px; font-size:2rem;">¡Pedido Realizado con Éxito!</h2>
+            <p style="color:#d0d0d0; font-size:1.1rem; line-height:1.6;">Tu pedido ha sido procesado correctamente.<br>Pronto recibirás tu compra.</p>
+        </div>
+    </div>
     
     <script src="{{ url_for('static', filename='carrito.js') }}"></script>
 </body>

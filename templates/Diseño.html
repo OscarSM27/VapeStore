@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urban Vapes - Tienda de Vapes</title>
+    <title>VapeStore - Tienda de Vapes</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
-        <a href="{{ url_for('diseño') }}" class="logo-link" aria-label="Inicio">
-            <div class="logo">Vapes Store</div>
+        <a href="{{ url_for('index') }}" class="logo-link" aria-label="Inicio">
+            <div class="logo">VapeStore</div>
         </a>
         <nav>
             {% if session.get('user_id') %}
@@ -64,7 +64,7 @@
     </div>
 
     <footer>
-        <p>© 2025 Urban Vapes - Todos los derechos reservados</p>
+        <p>© 2025 VapeStore - Todos los derechos reservados</p>
     </footer>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

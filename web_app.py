@@ -1,11 +1,7 @@
-from flask import Flask, render_template, abort, url_for, request, session, redirect, jsonify
-from db.main import get_connection, register_user, get_user_by_email
-import hashlib
-import traceback
 import os
 from pathlib import Path
 
-# Cargar variables de entorno del archivo .env (solo en desarrollo local)
+# Cargar variables de entorno del archivo .env ANTES de importar cualquier módulo
 env_file = Path(__file__).parent / ".env"
 if env_file.exists():
     with open(env_file) as f:
@@ -15,20 +11,31 @@ if env_file.exists():
                 key, value = line.split("=", 1)
                 os.environ.setdefault(key.strip(), value.strip())
 
+from flask import Flask, render_template, abort, url_for, request, session, redirect, jsonify
+from db.main import get_connection, register_user, get_user_by_email
+import hashlib
+import traceback
+
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.environ.get("SECRET_KEY", "tu_clave_secreta_super_segura_123")
 
 def _hash_password(password: str) -> str:
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
-def fetch_products(limit=100):
+def fetch_products(limit=100, random=False):
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT id, codigo, marca, sabor, tipo, stock, precio, descripcion, image_url, thumb_url, fecha_ingreso "
-                "FROM productos ORDER BY fecha_ingreso DESC LIMIT %s", (limit,)
-            )
+            if random:
+                cur.execute(
+                    "SELECT id, codigo, marca, sabor, tipo, stock, precio, descripcion, image_url, thumb_url, fecha_ingreso "
+                    "FROM productos ORDER BY RAND() LIMIT %s", (limit,)
+                )
+            else:
+                cur.execute(
+                    "SELECT id, codigo, marca, sabor, tipo, stock, precio, descripcion, image_url, thumb_url, fecha_ingreso "
+                    "FROM productos ORDER BY fecha_ingreso DESC LIMIT %s", (limit,)
+                )
             return cur.fetchall()
     finally:
         conn.close()
@@ -70,7 +77,7 @@ def auth_login():
         if user.get("password") == _hash_password(password):
             session["user_id"] = user.get("id")
             session["user_name"] = user.get("name")
-            return redirect(url_for("diseño"))
+            return redirect(url_for("index"))
     
     # Si llegamos aquí, las credenciales son inválidas
     return render_template("auth.html", error="Email o contraseña incorrectos"), 401
@@ -95,7 +102,7 @@ def auth_registro():
         user = register_user(name, email, password)
         session["user_id"] = user.get("id")
         session["user_name"] = user.get("name")
-        return redirect(url_for("diseño"))
+        return redirect(url_for("index"))
     except Exception as e:
         error_msg = str(e)
         if "Duplicate entry" in error_msg or "email" in error_msg.lower():
@@ -105,11 +112,13 @@ def auth_registro():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("diseño"))
+    return redirect(url_for("index"))
 
 @app.route("/")
 def index():
-    return redirect(url_for("diseño"))
+    # Obtener 4 productos aleatorios para la página de inicio
+    productos_destacados = fetch_products(4, random=True)
+    return render_template("inicio.html", productos_destacados=productos_destacados)
 
 @app.route("/carrito")
 def carrito():
@@ -127,8 +136,19 @@ def checkout():
 
     data = request.get_json() or {}
     cart = data.get("cart") or []
+    direccion = data.get("direccion", "").strip()
+    referencias = data.get("referencias", "").strip()
+    telefono = data.get("telefono", "").strip()
+    metodo_pago = data.get("metodo_pago", "").strip()
+    
     if not cart:
         return jsonify({"error": "carrito_vacio"}), 400
+    
+    if not direccion or not referencias or not telefono:
+        return jsonify({"error": "datos_envio_incompletos"}), 400
+    
+    if not metodo_pago or metodo_pago not in ['efectivo', 'tarjeta']:
+        return jsonify({"error": "metodo_pago_invalido"}), 400
 
     conn = get_connection()
     try:
@@ -163,8 +183,8 @@ def checkout():
             total = round(subtotal + tax, 2)
 
             cur.execute(
-                "INSERT INTO orders (user_id, total, tax) VALUES (%s, %s, %s)",
-                (session["user_id"], total, tax)
+                "INSERT INTO orders (user_id, total, tax, direccion_envio, referencias, telefono, metodo_pago) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (session["user_id"], total, tax, direccion, referencias, telefono, metodo_pago)
             )
             order_id = cur.lastrowid
 

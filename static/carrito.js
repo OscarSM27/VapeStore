@@ -117,11 +117,99 @@ async function procederCheckout() {
         return;
     }
 
+    // Mostrar modal de envío
+    const modal = document.getElementById('modalEnvio');
+    modal.style.display = 'flex';
+}
+
+// Variables globales para almacenar datos del pedido
+let datosEnvio = {};
+
+// Cerrar modales y manejar formularios
+document.addEventListener('DOMContentLoaded', function() {
+    // Botón cancelar modal de envío
+    const btnCancelar = document.getElementById('btnCancelarModal');
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', function() {
+            document.getElementById('modalEnvio').style.display = 'none';
+            document.getElementById('formEnvio').reset();
+        });
+    }
+
+    // Botón cancelar modal de pago
+    const btnCancelarPago = document.getElementById('btnCancelarPago');
+    if (btnCancelarPago) {
+        btnCancelarPago.addEventListener('click', function() {
+            document.getElementById('modalPago').style.display = 'none';
+        });
+    }
+
+    // Manejar envío del formulario de dirección
+    const formEnvio = document.getElementById('formEnvio');
+    if (formEnvio) {
+        formEnvio.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const direccion = document.getElementById('direccion').value.trim();
+            const referencias = document.getElementById('referencias').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+
+            if (!direccion || !referencias || !telefono) {
+                alert('Por favor completa todos los campos');
+                return;
+            }
+
+            // Validar teléfono (10 dígitos)
+            if (!/^\d{10}$/.test(telefono)) {
+                alert('El teléfono debe tener 10 dígitos');
+                return;
+            }
+
+            // Guardar datos de envío
+            datosEnvio = {
+                direccion: direccion,
+                referencias: referencias,
+                telefono: telefono
+            };
+
+            // Ocultar modal de envío y mostrar modal de pago
+            document.getElementById('modalEnvio').style.display = 'none';
+            document.getElementById('modalPago').style.display = 'flex';
+        });
+    }
+
+    // Botón Efectivo
+    const btnEfectivo = document.getElementById('btnEfectivo');
+    if (btnEfectivo) {
+        btnEfectivo.addEventListener('click', function() {
+            procesarPedido('efectivo');
+        });
+    }
+
+    // Botón Tarjeta
+    const btnTarjeta = document.getElementById('btnTarjeta');
+    if (btnTarjeta) {
+        btnTarjeta.addEventListener('click', function() {
+            procesarPedido('tarjeta');
+        });
+    }
+});
+
+// Función para procesar el pedido con el método de pago seleccionado
+async function procesarPedido(metodoPago) {
+    const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
     try {
         const resp = await fetch('/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart: carrito })
+            body: JSON.stringify({ 
+                cart: carrito,
+                direccion: datosEnvio.direccion,
+                referencias: datosEnvio.referencias,
+                telefono: datosEnvio.telefono,
+                metodo_pago: metodoPago
+            })
         });
 
         const data = await resp.json();
@@ -132,9 +220,20 @@ async function procederCheckout() {
         }
 
         localStorage.removeItem('carrito');
-        alert('✅ Pedido registrado. ID: ' + data.order_id);
+        document.getElementById('modalPago').style.display = 'none';
+        document.getElementById('formEnvio').reset();
+        datosEnvio = {};
         actualizarBadge();
-        window.location.href = '/diseño';
+        
+        // Mostrar modal de éxito
+        const modalExito = document.getElementById('modalExito');
+        modalExito.style.display = 'flex';
+        
+        // Cerrar modal y redirigir después de 3 segundos
+        setTimeout(function() {
+            modalExito.style.display = 'none';
+            window.location.href = '/';
+        }, 3000);
     } catch (err) {
         console.error(err);
         alert('Error de red al enviar el pedido.');
