@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos - VapeStore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .pedidos-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .pedido-card {
+            background: #1e1e1e;
+            border: 1px solid #800000;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #800000;
+        }
+
+        .pedido-id {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffcccc;
+        }
+
+        .pedido-fecha {
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        .pedido-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .info-item {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #f5f5f5;
+            font-size: 1rem;
+        }
+
+        .pedido-items {
+            margin-top: 25px;
+        }
+
+        .pedido-items h4 {
+            color: #ffcccc;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .item-producto {
+            display: flex;
+            gap: 15px;
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .item-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #1a1a1a;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-nombre {
+            font-weight: 600;
+            color: #ffcccc;
+            margin-bottom: 5px;
+        }
+
+        .item-sabor {
+            font-size: 0.85rem;
+            color: #cc0000;
+            text-transform: uppercase;
+        }
+
+        .item-cantidad {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .item-precio {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffcccc;
+            text-align: right;
+        }
+
+        .pedido-total {
+            display: flex;
+            justify-content: flex-end;
+            gap: 40px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #444;
+        }
+
+        .total-item {
+            text-align: right;
+        }
+
+        .total-label {
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .total-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffcccc;
+        }
+
+        .total-final {
+            font-size: 1.5rem;
+            color: #00ff00;
+        }
+
+        .no-pedidos {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+        }
+
+        .no-pedidos h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #666;
+        }
+
+        .no-pedidos a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #cc0000;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .no-pedidos a:hover {
+            background: #800000;
+        }
+
+        .metodo-pago-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-efectivo {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-tarjeta {
+            background: #007bff;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .pedido-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .pedido-info {
+                grid-template-columns: 1fr;
+            }
+
+            .item-producto {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .item-precio {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('index') }}" class="logo-link" aria-label="Inicio">
+            <div class="logo">VapeStore</div>
+        </a>
+        <nav>
+            {% if session.get('user_id') %}
+                <span style="color: #ffcccc; font-weight: 600;">👤 {{ session.get('user_name') }}</span>
+                <a href="{{ url_for('diseño') }}">Catálogo</a>
+                <a href="{{ url_for('pedidos') }}">Mis Pedidos</a>
+                <a href="{{ url_for('carrito') }}" style="position: relative;">Carrito<span id="cart-badge" class="cart-badge" style="display: none;"></span></a>
+                <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+            {% else %}
+                <a href="{{ url_for('diseño') }}">Catálogo</a>
+                <a href="{{ url_for('auth') }}">Iniciar sesión / Registro</a>
+                <a href="{{ url_for('carrito') }}" style="position: relative;">Carrito<span id="cart-badge" class="cart-badge" style="display: none;"></span></a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div class="pedidos-container">
+        <h2>📦 Mis Pedidos</h2>
+
+        {% if orders %}
+            {% for order in orders %}
+            <div class="pedido-card">
+                <div class="pedido-header">
+                    <div>
+                        <div class="pedido-id">Pedido #{{ order.id }}</div>
+                        <div class="pedido-fecha">{{ order.get('created_at').strftime('%d/%m/%Y %H:%M') if order.get('created_at') else '' }}</div>
+                    </div>
+                    <div>
+                        {% if order.metodo_pago == 'efectivo' %}
+                        <span class="metodo-pago-badge badge-efectivo">💵 Efectivo</span>
+                        {% else %}
+                        <span class="metodo-pago-badge badge-tarjeta">💳 Tarjeta</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="pedido-info">
+                    <div class="info-item">
+                        <div class="info-label">📍 Dirección de Envío</div>
+                        <div class="info-value">{{ order.direccion_envio or 'No especificada' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">📝 Referencias</div>
+                        <div class="info-value">{{ order.referencias or 'Sin referencias' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">📞 Teléfono</div>
+                        <div class="info-value">{{ order.telefono or 'No proporcionado' }}</div>
+                    </div>
+                </div>
+
+                <div class="pedido-items">
+                    <h4>Productos</h4>
+                    {% for item in order['items'] %}
+                    <div class="item-producto">
+                        <img src="{{ item.image_url or url_for('static', filename='placeholder.png') }}" 
+                             alt="{{ item.marca }}" 
+                             class="item-img">
+                        <div class="item-details">
+                            <div class="item-nombre">{{ item.marca }}</div>
+                            {% if item.sabor %}
+                            <div class="item-sabor">{{ item.sabor }}</div>
+                            {% endif %}
+                            <div class="item-cantidad">Cantidad: {{ item.quantity }}</div>
+                        </div>
+                        <div class="item-precio">
+                            ${{ '%.2f'|format(item.price * item.quantity) }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="pedido-total">
+                    <div class="total-item">
+                        <div class="total-label">Subtotal:</div>
+                        <div class="total-value">${{ '%.2f'|format(order.total - order.tax) }}</div>
+                    </div>
+                    <div class="total-item">
+                        <div class="total-label">IVA (10%):</div>
+                        <div class="total-value">${{ '%.2f'|format(order.tax) }}</div>
+                    </div>
+                    <div class="total-item">
+                        <div class="total-label">Total:</div>
+                        <div class="total-value total-final">${{ '%.2f'|format(order.total) }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-pedidos">
+                <h3>📭 No tienes pedidos aún</h3>
+                <p>Explora nuestro catálogo y realiza tu primera compra</p>
+                <a href="{{ url_for('diseño') }}">Ver Productos</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <footer>
+        <p>© 2025 VapeStore - Todos los derechos reservados</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

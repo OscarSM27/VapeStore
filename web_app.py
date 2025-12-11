@@ -129,6 +129,45 @@ def carrito():
         user_name=session.get("user_name")
     )
 
+@app.route("/pedidos")
+def pedidos():
+    if not session.get("user_id"):
+        return redirect(url_for("auth"))
+    
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            # Obtener pedidos del usuario
+            cur.execute("""
+                SELECT id, total, tax, direccion_envio, referencias, telefono, metodo_pago
+                FROM orders
+                WHERE user_id = %s
+                ORDER BY id DESC
+            """, (session["user_id"],))
+            orders = cur.fetchall()
+            
+            # Para cada pedido, obtener los items
+            for order in orders:
+                try:
+                    cur.execute("""
+                        SELECT oi.quantity, oi.price, p.marca, p.sabor, p.image_url
+                        FROM order_items oi
+                        JOIN productos p ON oi.product_id = p.id
+                        WHERE oi.order_id = %s
+                    """, (order['id'],))
+                    order['items'] = cur.fetchall() or []
+                except Exception as e:
+                    print(f"Error obteniendo items para pedido {order['id']}: {e}")
+                    order['items'] = []
+            
+            return render_template("pedidos.html", orders=orders)
+    except Exception as e:
+        print(f"Error en página de pedidos: {e}")
+        traceback.print_exc()
+        return f"Error al cargar pedidos: {str(e)}", 500
+    finally:
+        conn.close()
+
 @app.route("/checkout", methods=["POST"])
 def checkout():
     if not session.get("user_id"):

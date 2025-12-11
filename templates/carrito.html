@@ -228,9 +228,12 @@
         <nav>
             {% if session.get('user_id') %}
                 <span style="color: #ffcccc; font-weight: 600;">👤 {{ session.get('user_name') }}</span>
+                <a href="{{ url_for('diseño') }}">Catálogo</a>
+                <a href="{{ url_for('pedidos') }}">Mis Pedidos</a>
                 <a href="{{ url_for('carrito') }}">🛒 Carrito</a>
                 <a href="{{ url_for('logout') }}">Cerrar sesión</a>
             {% else %}
+                <a href="{{ url_for('diseño') }}">Catálogo</a>
                 <a href="{{ url_for('auth') }}">Iniciar sesión / Registro</a>
                 <a href="{{ url_for('carrito') }}" style="position: relative;">
                     🛒 Carrito

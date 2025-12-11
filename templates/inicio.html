@@ -185,6 +185,7 @@
             {% if session.get('user_id') %}
                 <span style="color: #ffcccc; font-weight: 600;">👤 {{ session.get('user_name') }}</span>
                 <a href="{{ url_for('diseño') }}">Catálogo</a>
+                <a href="{{ url_for('pedidos') }}">Mis Pedidos</a>
                 <a href="{{ url_for('carrito') }}" style="position: relative;">Carrito<span id="cart-badge" class="cart-badge" style="display: none;"></span></a>
                 <a href="{{ url_for('logout') }}">Cerrar sesión</a>
             {% else %}
@@ -245,6 +246,50 @@
     <footer>
         <p>&copy; 2025 VapeStore. Todos los derechos reservados.</p>
     </footer>
+
+    <!-- Modal de verificación de edad -->
+    <div id="modalEdad" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; align-items:center; justify-content:center;">
+        <div style="background:#1e1e1e; border: 3px solid #cc0000; padding:50px; border-radius:20px; max-width:600px; width:90%; box-shadow: 0 20px 60px rgba(204,0,0,0.5); text-align:center;">
+            <div style="font-size:4rem; margin-bottom:20px; color:#cc0000;">⚠️</div>
+            <h2 style="color:#ffcccc; margin-bottom:25px; font-size:2rem;">Verificación de Edad</h2>
+            <p style="color:#f5f5f5; font-size:1.2rem; line-height:1.8; margin-bottom:40px;">
+                Los artículos vendidos en esta página pueden causar adicción y no deberían ser consumidos por menores de edad.
+            </p>
+            
+            <div style="display:flex; flex-direction:column; gap:20px;">
+                <button id="btnMayorEdad" type="button" style="width:100%; background:#00cc00; color:white; padding:20px; border:none; border-radius:10px; font-weight:700; font-size:1.3rem; cursor:pointer; transition:all 0.3s;">
+                    ✅ Sí, soy mayor de edad
+                </button>
+                
+                <button id="btnMenorEdad" type="button" style="width:100%; background:#666; color:white; padding:20px; border:none; border-radius:10px; font-weight:700; font-size:1.3rem; cursor:pointer; transition:all 0.3s;">
+                    ❌ No, soy menor de edad
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Verificación de edad
+        (function() {
+            const sesionActiva = {{ 'true' if session.get('user_id') else 'false' }};
+            const modal = document.getElementById('modalEdad');
+            
+            // Mostrar modal siempre que no haya sesión activa
+            if (!sesionActiva) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+            
+            document.getElementById('btnMayorEdad').addEventListener('click', function() {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+            
+            document.getElementById('btnMenorEdad').addEventListener('click', function() {
+                window.location.href = 'https://www.youtube.com/watch?v=_BmDfVmuZBE';
+            });
+        })();
+    </script>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
