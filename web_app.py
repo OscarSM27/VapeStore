@@ -192,6 +192,11 @@ def checkout():
     conn = get_connection()
     try:
         with conn.cursor() as cur:
+            # Obtener el email del usuario
+            cur.execute("SELECT email FROM users WHERE id = %s", (session["user_id"],))
+            user_data = cur.fetchone()
+            user_email = user_data.get("email") if user_data else ""
+            
             items = []
             subtotal = 0.0
             for it in cart:
@@ -222,8 +227,8 @@ def checkout():
             total = round(subtotal + tax, 2)
 
             cur.execute(
-                "INSERT INTO orders (user_id, total, tax, direccion_envio, referencias, telefono, metodo_pago) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (session["user_id"], total, tax, direccion, referencias, telefono, metodo_pago)
+                "INSERT INTO orders (user_id, user_email, total, tax, direccion_envio, referencias, telefono, metodo_pago) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                (session["user_id"], user_email, total, tax, direccion, referencias, telefono, metodo_pago)
             )
             order_id = cur.lastrowid
 
