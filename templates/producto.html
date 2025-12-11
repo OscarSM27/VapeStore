@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.get('marca','Producto') }} — Urban Vapes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .producto-detalle {
+            max-width: 1000px;
+            margin: 2rem auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        .detalle-img img { width: 100%; border-radius: 8px; }
+        .detalle-info h1 { margin: 0 0 0.5rem 0; color: #ffcccc; }
+        .detalle-info p { color: #d0d0d0; line-height: 1.5; }
+        .detalle-actions { margin-top: 1.5rem; display:flex; gap:1rem; align-items:center; }
+        @media (max-width:900px){ .producto-detalle{ grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('diseño') }}" class="logo-link" aria-label="Inicio">
+            <div class="logo">Vapes Store</div>
+        </a>
+        <nav>
+            {% if session.get('user_id') %}
+                <span style="color: #ffcccc; font-weight: 600;">👤 {{ session.get('user_name') }}</span>
+                <a href="{{ url_for('carrito') }}">🛒 Carrito</a>
+                <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+            {% else %}
+                <a href="{{ url_for('auth') }}">Iniciar sesión / Registro</a>
+                <a href="{{ url_for('carrito') }}">🛒 Carrito</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="producto-detalle">
+            <div class="detalle-img">
+                <img src="{{ product.get('image_url') or url_for('static', filename='placeholder.png') }}" alt="{{ product.get('marca') }}">
+            </div>
+            <div class="detalle-info">
+                <h1>{{ product.get('marca') }}</h1>
+                {% if product.get('sabor') %}<p><strong>Sabor:</strong> {{ product.get('sabor') }}</p>{% endif %}
+                {% if product.get('tipo') %}<p><strong>Tipo:</strong> {{ product.get('tipo') }}</p>{% endif %}
+                <p class="descripcion">{{ product.get('descripcion') or 'Sin descripción' }}</p>
+                <p class="precio" style="font-size:24px; margin-top:1rem;">${{ '%.2f'|format(product.get('precio',0) or 0) }}</p>
+
+                <div class="detalle-actions">
+                    <button type="button" class="btn-carrito"
+                        data-id="{{ product.get('id') }}"
+                        data-nombre="{{ product.get('marca','Producto') }}"
+                        data-sabor="{{ product.get('sabor','') }}"
+                        data-precio="{{ product.get('precio',0) }}"
+                        data-imagen="{{ product.get('image_url', '/static/placeholder.png') }}">Añadir al carrito</button>
+                    <a href="{{ url_for('diseño') }}" class="btn-continuar" style="background:#444;color:#ffcccc;padding:10px 15px;border-radius:6px;text-decoration:none;">← Volver</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2025 Urban Vapes - Todos los derechos reservados</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

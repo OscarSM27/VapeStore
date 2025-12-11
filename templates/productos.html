@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Productos</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Productos</h1>
+  <div class="grid">
+  {% for p in products %}
+    <div class="producto">
+      <a href="{{ url_for('producto', product_id=p.id) }}">
+        <img src="{{ p.image_url or url_for('static', filename='placeholder.png') }}" alt="{{ p.marca }}" width="250" height="250">
+        <h3>{{ p.marca }}{% if p.sabor %} — {{ p.sabor }}{% endif %}</h3>
+        <p>{{ p.tipo or '' }}</p>
+        <p>$ {{ '%.2f'|format(p.precio or 0) }}</p>
+      </a>
+    </div>
+  {% else %}
+    <p>No hay productos.</p>
+  {% endfor %}
+  </div>
+</body>
+</html>
